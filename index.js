@@ -62,12 +62,24 @@ app.post("/v1/chat/completions", async (req, res) => {
       body: JSON.stringify(body)
     });
 
+    const isStream = body.stream === true;
+
+    if (isStream) {
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      r.body.pipe(res);
+      return;
+    }
+
     const data = await r.json();
     res.status(r.status).json(data);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
